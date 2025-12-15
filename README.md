@@ -22,6 +22,7 @@ The admin profile will allow you to remove existing entries in the database for 
 See ERD below.
 
 
+![ERD Table](final_proj_12780.drawio.png)
 
 
 
