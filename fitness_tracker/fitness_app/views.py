@@ -35,7 +35,7 @@ def add_exercise(request):
         return redirect("/?error=That%20exercise%20already%20exists.")
 
     Exercise.objects.create(name=name, muscle_group=muscle_group)
-    return redirect("/?success=Exercise%20added!")
+    return redirect("/")
 
 
 def log_session(request):
@@ -59,7 +59,7 @@ def log_session(request):
             weight=weight,
             reps=reps,
         )
-        return redirect("/?success=Session%20logged!")
+        return redirect("/")
     except ValueError:
         return redirect("/?error=Invalid%20number%20entered%20(weight%20or%20reps).")
 

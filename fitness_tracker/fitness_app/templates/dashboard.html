@@ -5,25 +5,12 @@
   <meta charset="utf-8" />
   <title>Fitness Dashboard</title>
 
-  <!-- Chart.js (external library) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Your app JS (served by Django staticfiles) -->
   <script src="{% static '/dashboard.js' %}" defer></script>
 </head>
 <body>
   <h1>Fitness Dashboard</h1>
-
-  {% if error %}
-    <p style="color: red;"><strong>{{ error }}</strong></p>
-  {% endif %}
-  {% if success %}
-    <p style="color: green;"><strong>{{ success }}</strong></p>
-  {% endif %}
-
-  <p>
-    <a href="/export.xlsx">Export All (XLSX)</a>
-  </p>
 
   <hr>
 
