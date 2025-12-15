@@ -1,0 +1,141 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Fitness Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <h1>Fitness Dashboard</h1>
+
+  {% if error %}
+    <p style="color: red;"><strong>{{ error }}</strong></p>
+  {% endif %}
+  {% if success %}
+    <p style="color: green;"><strong>{{ success }}</strong></p>
+  {% endif %}
+
+  <p>
+    <a href="/export.xlsx">Export All (XLSX)</a>
+  </p>
+
+  <hr>
+
+  <h2>Add Exercise</h2>
+  <form method="post" action="/exercise/add/">
+    {% csrf_token %}
+    <input name="name" placeholder="Name" required>
+    <input name="muscle_group" placeholder="Muscle group" required>
+    <button type="submit">Add</button>
+  </form>
+
+  <hr>
+
+  <h2>Log Session</h2>
+  <form method="post" action="/log/">
+    {% csrf_token %}
+
+    <label>Exercise:</label>
+    <select name="exercise" required>
+      <option value="">-- select --</option>
+      {% for ex in exercises %}
+        <option value="{{ ex.id }}">{{ ex.name }}</option>
+      {% endfor %}
+    </select>
+
+    <label>Date:</label>
+    <input type="date" name="performed_at" required>
+
+    <label>Weight:</label>
+    <input type="number" step="0.1" name="weight" placeholder="e.g. 135">
+
+    <label>Reps:</label>
+    <input type="number" name="reps" placeholder="e.g. 8">
+
+    <button type="submit">Save</button>
+  </form>
+
+  <hr>
+
+  <h2>Progress</h2>
+
+  <label for="exercise-select">Chart exercise:</label>
+  <select id="exercise-select">
+    <option value="">All exercises</option>
+    {% for ex in exercises %}
+      <option value="{{ ex.id }}">{{ ex.name }}</option>
+    {% endfor %}
+  </select>
+
+  <label for="metric-select">Metric:</label>
+  <select id="metric-select">
+    <option value="weight" selected>Weight</option>
+    <option value="reps">Reps</option>
+  </select>
+
+  <button id="export-selected" type="button">Export Selected (XLSX)</button>
+
+  <div style="max-width: 900px; margin-top: 16px;">
+    <canvas id="chart"></canvas>
+  </div>
+
+  <script>
+    const chartEl = document.getElementById("chart");
+    const exerciseSelect = document.getElementById("exercise-select");
+    const metricSelect = document.getElementById("metric-select");
+    const exportBtn = document.getElementById("export-selected");
+
+    let chart = new Chart(chartEl, {
+      type: "line",
+      data: {
+        labels: [],
+        datasets: [{
+          label: "weight",
+          data: [],
+        }]
+      }
+    });
+
+    function buildUrl() {
+      const ex = exerciseSelect.value;
+      const metric = metricSelect.value;
+
+      let url = `/chart-data/?metric=${encodeURIComponent(metric)}`;
+      if (ex) url += `&exercise_id=${encodeURIComponent(ex)}`;
+      return url;
+    }
+
+    function loadChart() {
+      fetch(buildUrl())
+        .then(r => r.json())
+        .then(payload => {
+          chart.data.labels = payload.labels || [];
+          chart.data.datasets[0].data = payload.data || [];
+          chart.data.datasets[0].label = payload.metric || metricSelect.value;
+          chart.update();
+        })
+        .catch(() => {
+          // if something goes wrong, just clear chart
+          chart.data.labels = [];
+          chart.data.datasets[0].data = [];
+          chart.update();
+        });
+    }
+
+    exerciseSelect.addEventListener("change", loadChart);
+    metricSelect.addEventListener("change", loadChart);
+
+    exportBtn.addEventListener("click", () => {
+      const ex = exerciseSelect.value;
+      if (ex) {
+        window.location.href = `/export.xlsx?exercise_id=${encodeURIComponent(ex)}`;
+      } else {
+        window.location.href = "/export.xlsx";
+      }
+    });
+
+    // initial load
+    loadChart();
+  </script>
+</body>
+</html>
