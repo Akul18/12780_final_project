@@ -4,8 +4,6 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_http_methods
 
-from urllib.parse import quote
-
 from .models import Exercise, SessionSet
 
 
@@ -26,9 +24,13 @@ def add_exercise(request):
     name = (request.POST.get("name") or "").strip()
     muscle_group = (request.POST.get("muscle_group") or "").strip()
 
+    # Use %20 instead of spaces in URLs.
+
+    # Missing an attribute
     if not name or not muscle_group:
         return redirect("/?error=Name%20and%20muscle%20group%20are%20required.")
 
+    # Attribute already exists
     if Exercise.objects.filter(name__iexact=name).exists():
         return redirect("/?error=That%20exercise%20already%20exists.")
 
@@ -53,7 +55,7 @@ def log_session(request):
 
         SessionSet.objects.create(
             exercise=exercise,
-            performed_at=performed_at,  # expects YYYY-MM-DD from <input type="date">
+            performed_at=performed_at,  
             weight=weight,
             reps=reps,
         )
@@ -63,18 +65,8 @@ def log_session(request):
 
 
 def chart_data(request):
-    """
-    Chart.js JSON endpoint.
-    Query params:
-      - exercise_id (optional)
-      - metric: weight|reps (default weight)
-    """
     exercise_id = request.GET.get("exercise_id")
     metric = (request.GET.get("metric") or "weight").strip()
-
-    allowed_metrics = {"weight", "reps"}
-    if metric not in allowed_metrics:
-        return JsonResponse({"error": "Invalid metric."}, status=400)
 
     qs = SessionSet.objects.order_by("performed_at", "id")
     if exercise_id:
@@ -89,15 +81,10 @@ def chart_data(request):
         labels.append(s.performed_at.isoformat())
         data.append(getattr(s, metric))
 
-    return JsonResponse({"labels": labels, "data": data, "metric": metric})
+    return JsonResponse({"labels": labels, "data": data, "metric": metric}) # To be used in javascript for chart js
 
 
 def export_xlsx(request):
-    """
-    XLSX export.
-    Optional query param:
-      - exercise_id: export only that exercise
-    """
     exercise_id = request.GET.get("exercise_id")
 
     qs = SessionSet.objects.select_related("exercise").order_by("-performed_at", "-id")
