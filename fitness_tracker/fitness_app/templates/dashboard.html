@@ -1,9 +1,15 @@
+{% load static %}
 <!doctype html>
 <html>
 <head>
   <meta charset="utf-8" />
   <title>Fitness Dashboard</title>
+
+  <!-- Chart.js (external library) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Your app JS (served by Django staticfiles) -->
+  <script src="{% static '/dashboard.js' %}" defer></script>
 </head>
 <body>
   <h1>Fitness Dashboard</h1>
@@ -24,8 +30,8 @@
   <h2>Add Exercise</h2>
   <form method="post" action="/exercise/add/">
     {% csrf_token %}
-    <input name="name" placeholder="Name" required>
-    <input name="muscle_group" placeholder="Muscle group" required>
+    <input name="name" placeholder="Exercise name (e.g. Bench Press)" required>
+    <input name="muscle_group" placeholder="Muscle group (e.g. Chest)" required>
     <button type="submit">Add</button>
   </form>
 
@@ -39,7 +45,7 @@
     <select name="exercise" required>
       <option value="">-- select --</option>
       {% for ex in exercises %}
-        <option value="{{ ex.id }}">{{ ex.name }}</option>
+        <option value="{{ ex.id }}">{{ ex.name }} ({{ ex.muscle_group }})</option>
       {% endfor %}
     </select>
 
@@ -63,7 +69,7 @@
   <select id="exercise-select">
     <option value="">All exercises</option>
     {% for ex in exercises %}
-      <option value="{{ ex.id }}">{{ ex.name }}</option>
+      <option value="{{ ex.id }}">{{ ex.name }} ({{ ex.muscle_group }})</option>
     {% endfor %}
   </select>
 
@@ -78,64 +84,5 @@
   <div style="max-width: 900px; margin-top: 16px;">
     <canvas id="chart"></canvas>
   </div>
-
-  <script>
-    const chartEl = document.getElementById("chart");
-    const exerciseSelect = document.getElementById("exercise-select");
-    const metricSelect = document.getElementById("metric-select");
-    const exportBtn = document.getElementById("export-selected");
-
-    let chart = new Chart(chartEl, {
-      type: "line",
-      data: {
-        labels: [],
-        datasets: [{
-          label: "weight",
-          data: [],
-        }]
-      }
-    });
-
-    function buildUrl() {
-      const ex = exerciseSelect.value;
-      const metric = metricSelect.value;
-
-      let url = `/chart-data/?metric=${encodeURIComponent(metric)}`;
-      if (ex) url += `&exercise_id=${encodeURIComponent(ex)}`;
-      return url;
-    }
-
-    function loadChart() {
-      fetch(buildUrl())
-        .then(r => r.json())
-        .then(payload => {
-          chart.data.labels = payload.labels || [];
-          chart.data.datasets[0].data = payload.data || [];
-          chart.data.datasets[0].label = payload.metric || metricSelect.value;
-          chart.update();
-        })
-        .catch(() => {
-          // if something goes wrong, just clear chart
-          chart.data.labels = [];
-          chart.data.datasets[0].data = [];
-          chart.update();
-        });
-    }
-
-    exerciseSelect.addEventListener("change", loadChart);
-    metricSelect.addEventListener("change", loadChart);
-
-    exportBtn.addEventListener("click", () => {
-      const ex = exerciseSelect.value;
-      if (ex) {
-        window.location.href = `/export.xlsx?exercise_id=${encodeURIComponent(ex)}`;
-      } else {
-        window.location.href = "/export.xlsx";
-      }
-    });
-
-    // initial load
-    loadChart();
-  </script>
 </body>
 </html>
