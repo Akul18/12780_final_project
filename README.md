@@ -8,7 +8,9 @@ The application provides a structured alternative to unstructured workout notes 
 
 The application uses two primary models: Exercise, which represents a lift or movement, and SessionSet, which records individual workout sessions associated with an exercise.
 
-To use this application, run the following command from the fitness_tracker folder: python manage.py runserver
+To use this application, run the following command: docker pull ghcr.io/akul18/12780_final_project:latest
+
+Then, run the following command: docker run -p 8000:8000 ghcr.io/akul18/12780_final_project:latest
 
 Then open the link to view the UI: http://127.0.0.1:8000/
 
