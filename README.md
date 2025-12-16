@@ -20,6 +20,8 @@ You can also view the admin profile with the following link: http://127.0.0.1:80
 
 The admin profile will allow you to remove existing entries in the database for exercises and session sets.
 
+Testing framework can be found in fitness_tracker/fitness_app/tests.py.
+
 
 See ERD below.
 
